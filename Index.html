@@ -1,0 +1,1187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hong Kong &amp; Macau Food Label Screener — screening aid, not a verdict engine</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172027;
+      --muted: #5f707a;
+      --line: #d8e2e7;
+      --panel: #ffffff;
+      --soft: #f4f7f8;
+      --deep: #12333d;
+      --hk: #0f766e;
+      --mo: #9a4e1f;
+      --review: #9b3d2e;
+      --watch: #8a5a00;
+      --note: #3d6170;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #eef3f5;
+    }
+
+    header {
+      background: linear-gradient(135deg, rgba(18, 51, 61, 0.98), rgba(15, 118, 110, 0.94) 55%, rgba(154, 78, 31, 0.94));
+      color: white;
+      padding: 26px clamp(18px, 4vw, 52px) 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      max-width: 1100px;
+      font-size: clamp(25px, 4vw, 42px);
+      line-height: 1.06;
+      letter-spacing: 0;
+    }
+
+    header p {
+      max-width: 850px;
+      margin: 12px 0 0;
+      color: #e7f5f3;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .stamp {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #f2fbfa;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .disclaimer {
+      max-width: 1480px;
+      margin: 16px auto 0;
+      padding: 0 clamp(14px, 3vw, 34px);
+    }
+
+    .disclaimer-inner {
+      border: 2px solid var(--review);
+      border-left-width: 8px;
+      border-radius: 8px;
+      background: #fff6f4;
+      color: #4a2018;
+      padding: 14px 16px;
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+
+    .disclaimer-inner strong { color: var(--review); }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(330px, 500px) minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px clamp(14px, 3vw, 34px) 34px;
+      max-width: 1480px;
+      margin: 0 auto;
+    }
+
+    section, aside {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 12px 28px rgba(24, 38, 45, 0.08);
+    }
+
+    .input-panel { padding: 18px; }
+    .result-panel { min-height: 760px; overflow: hidden; }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+      background: #fbfcfd;
+    }
+
+    h2, .toolbar h2 { margin: 0; font-size: 18px; letter-spacing: 0; }
+    h3 { margin: 0; font-size: 15px; letter-spacing: 0; }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      min-height: 38px;
+      padding: 0 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 650;
+    }
+
+    button.primary {
+      background: var(--deep);
+      color: white;
+      border-color: var(--deep);
+    }
+
+    button:hover { border-color: #9db2bd; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(21, 94, 239, 0.22);
+      outline-offset: 2px;
+    }
+
+    .grid { display: grid; gap: 14px; margin-top: 16px; }
+    .two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    label {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #30414a;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #cbd8de;
+      border-radius: 6px;
+      min-height: 40px;
+      padding: 9px 10px;
+      font: inherit;
+      color: var(--ink);
+      background: white;
+    }
+
+    textarea { min-height: 300px; resize: vertical; line-height: 1.42; }
+
+    fieldset {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      margin: 0;
+      padding: 12px;
+    }
+
+    legend { padding: 0 6px; font-weight: 800; font-size: 13px; color: #30414a; }
+
+    .checks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px; }
+    .checks label { display: flex; align-items: flex-start; gap: 8px; font-weight: 600; line-height: 1.25; }
+
+    input[type="checkbox"] { width: 17px; height: 17px; min-height: 0; margin-top: 1px; accent-color: var(--hk); }
+
+    .results { padding: 16px; display: grid; gap: 14px; }
+
+    .summary-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+
+    .metric {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .metric span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .metric strong { display: block; margin-top: 6px; font-size: clamp(20px, 3vw, 31px); line-height: 1.05; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 28px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .badge.review { color: var(--review); background: #fff0ed; border-color: #efbbb0; }
+    .badge.watch { color: var(--watch); background: #fff4dc; border-color: #e8cf95; }
+    .badge.note { color: var(--note); background: #edf5f7; border-color: #c7dce2; }
+
+    .flag {
+      border: 1px solid var(--line);
+      border-left-width: 6px;
+      border-radius: 8px;
+      padding: 12px;
+      background: white;
+    }
+
+    .flag.review { border-left-color: var(--review); }
+    .flag.watch { border-left-color: var(--watch); }
+    .flag.note { border-left-color: var(--note); }
+
+    .flag h3 { margin-bottom: 8px; }
+
+    .flag dl {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 6px 10px;
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.42;
+    }
+
+    .flag dt { color: #43545d; font-weight: 800; }
+    .flag dd { margin: 0; color: #24343c; }
+    .flag a, .source-box a { color: #075e8f; font-weight: 700; }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .list { display: grid; gap: 8px; margin-top: 8px; }
+
+    .checklist {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fbfcfd;
+    }
+
+    .checklist ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+      color: #354852;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .source-box {
+      background: #f9fbfc;
+      border-top: 1px solid var(--line);
+      padding: 14px 16px 16px;
+      color: #40545f;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .small { color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+      .result-panel { min-height: auto; }
+    }
+
+    @media (max-width: 720px) {
+      .two, .split, .summary-row, .checks { grid-template-columns: 1fr; }
+      .toolbar { align-items: flex-start; flex-direction: column; }
+      .toolbar-actions { justify-content: flex-start; }
+      .flag dl { grid-template-columns: 1fr; }
+      .flag dt { margin-top: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Hong Kong &amp; Macau Food Label Screener</h1>
+    <p>A second pair of eyes for prepackaged food labels: paste the label text as-is and get review flags, each with its trigger, regulatory anchor, anchor tier, and judgment status. The tool raises flags; a qualified human decides.</p>
+    <span class="stamp">Version 2.3 (Phase 0 refactor + fix rounds) · Built 2026-07-08 · Not formally validated</span>
+  </header>
+
+  <div class="disclaimer" role="note" aria-label="Read this first">
+    <div class="disclaimer-inner">
+      <strong>Read this first.</strong> This tool only raises flags for review — it never judges, grades, approves, or rejects a label. It sees only the text you paste: it cannot see the physical package, and it cannot check ingredient amounts, what is inside compound ingredients, or whether a claim is substantiated. Every finding — and anything the tool did <em>not</em> flag — must be reviewed by a qualified food-safety professional. It is a screening aid, not legal advice, and it has not undergone formal validation.
+    </div>
+  </div>
+
+  <main>
+    <section class="input-panel" aria-labelledby="input-title">
+      <h2 id="input-title">Label Text and Profile</h2>
+      <div class="grid">
+        <div class="two grid">
+          <label>Target market
+            <select id="market">
+              <option value="both">Hong Kong and Macau</option>
+              <option value="hk">Hong Kong only</option>
+              <option value="mo">Macau only</option>
+            </select>
+          </label>
+          <label>Product profile
+            <select id="type">
+              <option value="prepackaged">Prepackaged general food</option>
+              <option value="infant">Infant formula / follow-up / young child food</option>
+              <option value="fresh">Fresh or minimally prepared food</option>
+              <option value="catering">Catering / ready-to-eat service item</option>
+              <option value="alcohol">Alcoholic drink</option>
+            </select>
+          </label>
+        </div>
+
+        <label>Package / sale format
+          <select id="surface">
+            <option value="normal">Normal package</option>
+            <option value="small">Small package</option>
+            <option value="tiny">Very small package or uncertain label area</option>
+          </select>
+        </label>
+
+        <label>Paste label text as-is
+          <textarea id="labelText" placeholder="Paste everything printed on the label, exactly as written: product name, ingredient list, nutrition panel, date marking, storage instructions, manufacturer details, claims and slogans. One line per label line works best."></textarea>
+        </label>
+
+        <fieldset>
+          <legend>Facts Not Reliably Visible From Pasted Label Text</legend>
+          <div class="checks">
+            <label><input type="checkbox" id="imported" checked> Imported product</label>
+            <label><input type="checkbox" id="coldChain"> Needs chilled / frozen chain</label>
+            <label><input type="checkbox" id="animal"> Animal-origin product or controlled animal-origin ingredient</label>
+            <label><input type="checkbox" id="recall"> Past recall / complaint / adverse event</label>
+            <label><input type="checkbox" id="documents"> Supplier specs, COA, and traceability file ready</label>
+          </div>
+        </fieldset>
+
+        <button class="primary" id="run">Raise Review Flags</button>
+        <p class="small">This tool is a screening aid, not legal advice. It cannot inspect the physical package, validate lab values, verify compound ingredients, assess concentrations, or decide whether wording is adequate. Those items require assessment by a qualified food-safety professional.</p>
+      </div>
+    </section>
+
+    <aside class="result-panel" aria-labelledby="result-title">
+      <div class="toolbar">
+        <h2 id="result-title">Flags and Review Notes</h2>
+        <div class="toolbar-actions">
+          <button id="sample">Load Sample Label</button>
+          <button id="example">Load Risky Example</button>
+          <button id="print">Print / Save PDF</button>
+        </div>
+      </div>
+
+      <div class="results">
+        <div class="summary-row">
+          <div class="metric"><span>Flags Raised</span><strong id="flagTotal">--</strong></div>
+          <div class="metric"><span>Must-Review</span><strong id="mustReviewTotal">--</strong></div>
+          <div class="metric"><span>Watch Items</span><strong id="watchTotal">--</strong></div>
+        </div>
+
+        <div id="summaryText" class="small"></div>
+
+        <div class="split">
+          <div>
+            <span class="badge review">Must-Review Flags</span>
+            <div id="mustReview" class="list"></div>
+          </div>
+          <div>
+            <span class="badge watch">Watch Items</span>
+            <div id="watch" class="list"></div>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="checklist">
+            <h3>Parse Audit Trail — Allergen Categories (always all 8)</h3>
+            <p class="small">One line per statutory allergen category on every run, whether or not anything was detected. Detection is keyword-level only: concentration, compound ingredients, and cross-contact require assessment by a qualified food-safety professional.</p>
+            <ul id="allergenAudit"></ul>
+          </div>
+          <div class="checklist">
+            <h3>Parse Audit Trail — Nutrition Text (always all 8 + basis)</h3>
+            <p class="small">One line per core nutrient on every run. "Numeric value found" means digits were present on that label line — it does not verify values, units, rounding, or lab substantiation. Ingredient-list text is excluded from this scan, so an ingredient such as "sugar" or "salt" never satisfies a nutrition-panel check.</p>
+            <ul id="nutrientAudit"></ul>
+          </div>
+        </div>
+
+        <div class="split">
+          <div class="checklist">
+            <h3>Evidence Pack Checklist</h3>
+            <ul id="evidenceChecklist"></ul>
+          </div>
+          <div class="checklist">
+            <h3>Importer / Macau Launch Memo Checklist</h3>
+            <ul id="launchChecklist"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="source-box">
+        <strong>Version 2.3 (Phase 0 refactor + fix rounds) · Built 2026-07-08 · Not formally validated.</strong><br>
+        Anchor status: Cap. 132W regulation and Schedule 3 item numbers were cross-checked on 2026-07-08 against the Centre for Food Safety summary page; sub-item numbers and Macau anchors have not been independently verified — where a flag says "verify against official text", do exactly that before citing it. CFS guidance materials are advisory; the legislation itself binds.<br>
+        Tier policy: [STATUTORY] is used where the regulation FAMILY (regulation number / Schedule) was cross-checked against the CFS summary page on 2026-07-08, even where exact item/sub-item numbers remain unverified — those carry a 'verify against official text' caveat in the anchor. [CONSERVATIVE-FLAG] is used where no official text was located at all. [CFS-INTERPRETATION] is reserved for future flags anchored to CFS guidance rather than legislation; none exist in v1. Tier precision is upgraded as the RA spot-audits anchors.
+        Sources: <a href="https://www.cfs.gov.hk/english/food_leg/food_leg_cl.html" target="_blank" rel="noreferrer">Hong Kong CFS Cap. 132W page</a>, <a href="https://www.elegislation.gov.hk/hk/cap132W" target="_blank" rel="noreferrer">Hong Kong e-Legislation Cap. 132W</a>, <a href="https://www.foodsafety.gov.mo/" target="_blank" rel="noreferrer">Macau Food Safety Information</a>.
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    "use strict";
+    const $ = (id) => document.getElementById(id);
+    const HK_SOURCE = { label: "Hong Kong CFS Cap. 132W text", href: "https://www.cfs.gov.hk/english/food_leg/food_leg_cl.html" };
+    const PENDING = "[PENDING PROFESSIONAL JUDGMENT]";
+    const CONFIRMED = "[CONFIRMED]";
+    const PRO = "requires assessment by a qualified food-safety professional";
+
+    // The eight statutory allergen categories. English terms are matched with a
+    // plural-tolerant word boundary; CJK terms are matched by substring (word
+    // boundaries do not exist in CJK text).
+    const allergenTerms = [
+      { group: "cereals containing gluten", en: ["gluten", "wheat", "barley", "rye", "oat", "spelt"], cjk: ["麩質", "小麥", "大麥", "黑麥", "燕麥"] },
+      { group: "crustacea and crustacean products", en: ["crustacean", "shrimp", "prawn", "crab", "lobster"], cjk: ["甲殼", "蝦", "蟹", "龍蝦"] },
+      { group: "eggs and egg products", en: ["egg", "albumen"], cjk: ["蛋", "卵"] },
+      { group: "fish and fish products", en: ["fish", "collagen", "gelatin", "gelatine"], cjk: ["魚", "明膠", "魚膠"] },
+      { group: "peanuts, soyabeans and their products", en: ["peanut", "soy", "soya", "soybean", "soyabean"], cjk: ["花生", "大豆", "黃豆"] },
+      { group: "milk and milk products including lactose", en: ["milk", "lactose", "whey", "casein", "cream", "butter"], cjk: ["奶", "乳", "乳糖"] },
+      { group: "tree nuts and nut products", en: ["tree nut", "almond", "hazelnut", "walnut", "cashew", "pecan", "brazil nut", "pistachio", "macadamia"], cjk: ["果仁", "杏仁", "榛子", "核桃", "合桃", "腰果", "開心果"] },
+      { group: "sulphite / sulfite", en: ["sulphite", "sulfite", "sulfur dioxide", "sulphur dioxide", "metabisulphite", "metabisulfite"], cjk: ["亞硫酸鹽", "二氧化硫"] }
+    ];
+
+    // Energy + 7 core nutrients (the "1+7" set).
+    const nutrientChecks = [
+      { name: "energy value", re: /\b(energy|kcal|kj|kilocalorie|kilojoule)\b/i, cjk: /熱量|能量/ },
+      { name: "protein", re: /\b(protein)\b/i, cjk: /蛋白/ },
+      { name: "available carbohydrates / carbohydrates", re: /\b(carbohydrate|carbohydrates|carbs)\b/i, cjk: /碳水化合物/ },
+      { name: "total fat", re: /\b(total\s+fat|fat)\b/i, cjk: /脂肪/ },
+      { name: "saturated fatty acids / saturated fat", re: /\b(saturated|saturates|sat\.?\s*fat)\b/i, cjk: /飽和/ },
+      { name: "trans fatty acids / trans fat", re: /\b(trans)\b/i, cjk: /反式/ },
+      { name: "sodium", re: /\b(sodium|salt)\b/i, cjk: /鈉/ },
+      { name: "sugars", re: /\b(sugars?)\b/i, cjk: /糖/ }
+    ];
+
+    function checked(id) { return $(id).checked; }
+    function norm(text) { return text.replace(/\s+/g, " ").trim(); }
+
+    function findMatch(text, regex) {
+      const match = text.match(regex);
+      return match ? match[0].trim() : "";
+    }
+
+    function hasChinese(text) { return /[㐀-鿿]/.test(text); }
+
+    // FIX-2 (Session 1.1): English–Portuguese homographs ("volume", "peso")
+    // removed — they caused a false "Portuguese cues detected" result which in
+    // turn suppressed the Macau language watch flag (a false negative caused by
+    // a false positive; G2's worst failure mode). Unambiguous cues only.
+    function hasPortugueseCue(text) {
+      return /\b(ingredientes|validade|conservar|fabricado|distribuidor|informacao nutricional|informação nutricional)\b/i.test(text);
+    }
+
+    // Plural-tolerant English term matcher: "oat" matches "oats", "almond"
+    // matches "almonds". (REG-01 family: the predecessor missed plural forms.)
+    function englishTermRegex(term) {
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return new RegExp("\\b" + escaped + "(e?s)?\\b", "i");
+    }
+
+    function rawLines(raw) {
+      return raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    }
+
+    // Allergen scan. Returns one result object for EVERY category, always.
+    // No branch may return early or emit nothing (REG-01).
+    function scanAllergens(text) {
+      return allergenTerms.map((cat) => {
+        const hits = [];
+        cat.en.forEach((term) => {
+          const hit = findMatch(text, englishTermRegex(term));
+          if (hit) hits.push(hit);
+        });
+        cat.cjk.forEach((term) => {
+          if (text.includes(term)) hits.push(term);
+        });
+        const unique = hits.filter((h, i, arr) => arr.findIndex((o) => o.toLowerCase() === h.toLowerCase()) === i);
+        return { group: cat.group, hits: unique };
+      });
+    }
+
+    // FIX-4 (Session 1.2): lines belonging to the ingredient-list region are
+    // excluded from nutrient scanning. On a real label with no nutrition panel,
+    // ingredient text ("…Caster Sugar… Salt… (32%)…") satisfied the sodium and
+    // sugars presence checks — a silent pass on a missing panel (G2 worst case).
+    // The region starts at an ingredients/composition/contents/配料/成分 heading
+    // (including a single line carrying the whole list) and ends at a blank line
+    // or a recognisable new section. Residual limitation (declared): ingredient
+    // continuation text after a blank line, with a nutrient keyword AND digits
+    // on the same line, would still be scanned — over-flagging direction is
+    // preserved everywhere else.
+    // FIX-4b (Session 1.2.1): the original RS10 ingredient list has NO heading —
+    // it begins directly with "Wheatflour contains Gluten (with Wheatflour,
+    // Calcium Carbonate…". Region detection alone missed it. A per-line SHAPE
+    // rule is added: a line is classified as ingredient-list text when it has
+    // 4 or more list separators (, ， 、) AND fewer than 2 measurement tokens
+    // (a digit followed by g/mg/µg/kg/kJ/kcal). Rationale: real nutrition-panel
+    // rows are short ("Salt 0.68g", "of which sugars 16.6g", "Energy kJ 2179",
+    // "Protein: abc g", "蛋白質 適量" — 0-1 separators), while even a whole
+    // panel pasted on ONE line ("Energy 2179 kJ, Fat 33.4g, …") carries 2+
+    // measurement tokens and is therefore NEVER classified as ingredient text.
+    // Percentages like "(32%)" and additive codes like "E503" are not
+    // measurement tokens, so ingredient lists do not escape via their digits.
+    function looksLikeIngredientList(line) {
+      const separators = (line.match(/[,，、]/g) || []).length;
+      if (separators < 4) return false;
+      const measurementTokens = (line.match(/[0-9][.,]?[0-9]*\s*(g|mg|µg|mcg|kg|kj|kcal)\b/gi) || []).length;
+      return measurementTokens < 2;
+    }
+
+    function nutrientScanLines(raw) {
+      const lines = raw.split(/\r?\n/);
+      const ingredientStart = /^\s*(ingredients?\b|ingredientes\b|composition\b|contents\b|配料|成分)/i;
+      const sectionBreak = /^\s*(typical\s*values|nutrition|nutritional|energy|per\s*100|allergen|allergy|contains\b|storage|keep\b|store\b|best\s*before|use\s*by|expiry|net\s*(weight|volume|contents?)|manufactured|manufacturer|packed|distributed|imported|made\s+in|product\s+of|country\s+of\s+origin|營養|保存|貯存|此日期|淨重|容量|製造|包裝|分銷|進口|原產)/i;
+      const out = [];
+      let inIngredients = false;
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) { inIngredients = false; continue; }
+        if (ingredientStart.test(line)) { inIngredients = true; continue; }
+        if (inIngredients && sectionBreak.test(line)) inIngredients = false;
+        if (!inIngredients && !looksLikeIngredientList(line)) out.push(line);
+      }
+      return out;
+    }
+
+    // Nutrient scan over raw label lines (ingredient-list region excluded —
+    // FIX-4). Returns one result for EVERY nutrient, always: status is
+    // "numeric" (a line mentions it with digits), "non-numeric" (mentioned, but
+    // no line carrying it has any digits — REG-02), or "absent".
+    function scanNutrients(raw) {
+      const lines = nutrientScanLines(raw);
+      return nutrientChecks.map((n) => {
+        const matching = lines.filter((l) => n.re.test(l) || n.cjk.test(l));
+        if (!matching.length) return { name: n.name, status: "absent", quote: "" };
+        const numericLine = matching.find((l) => /[0-9]/.test(l));
+        if (numericLine) return { name: n.name, status: "numeric", quote: numericLine };
+        return { name: n.name, status: "non-numeric", quote: matching[0] };
+      });
+    }
+
+    // Declaration-basis scan (REG-03). Only ever ECHOES the exact text found in
+    // the label — it never converts, substitutes, or re-renders units.
+    const basisRe = /(per\s*100\s*m[lL]|per\s*100\s*mI?illilit(?:re|er)s?|per\s*100\s*[gG]|per\s*100\s*grams?|每\s*100\s*毫升|每\s*100\s*克|per\s+serving|per\s+package|每食用分量|每分量|每份|每包)/g;
+    function scanBasis(raw) {
+      const found = [];
+      let m;
+      basisRe.lastIndex = 0;
+      while ((m = basisRe.exec(raw)) !== null) {
+        const exact = m[0].trim();
+        if (!found.some((f) => f.toLowerCase() === exact.toLowerCase())) found.push(exact);
+      }
+      return found;
+    }
+
+    function addFlag(bucket, item) {
+      bucket.push({
+        severity: item.severity || "watch",
+        title: item.title,
+        trigger: item.trigger,
+        anchor: item.anchor,
+        tier: item.tier,
+        judgment: item.judgment,
+        note: item.note,
+        source: item.source
+      });
+    }
+
+    function renderFlag(item) {
+      const article = document.createElement("article");
+      article.className = "flag " + item.severity;
+      const h = document.createElement("h3");
+      h.textContent = item.title;
+      const dl = document.createElement("dl");
+      [
+        ["Trigger", item.trigger],
+        ["Anchor", item.anchor],
+        ["Tier", item.tier],
+        ["Judgment", item.judgment],
+        ["Note", item.note]
+      ].forEach(([label, value]) => {
+        const dt = document.createElement("dt");
+        const dd = document.createElement("dd");
+        dt.textContent = label;
+        dd.textContent = value;
+        if (label === "Anchor" && item.source) {
+          dd.append(" ");
+          const a = document.createElement("a");
+          a.href = item.source.href;
+          a.target = "_blank";
+          a.rel = "noreferrer";
+          a.textContent = item.source.label;
+          dd.append(a);
+        }
+        dl.append(dt, dd);
+      });
+      article.append(h, dl);
+      return article;
+    }
+
+    function runCheck() {
+      const raw = $("labelText").value;
+      const text = norm(raw);
+      const market = $("market").value;
+      const type = $("type").value;
+      const surface = $("surface").value;
+      const isHK = market === "hk" || market === "both";
+      const isMO = market === "mo" || market === "both";
+      const isPrepackaged = type === "prepackaged" || type === "infant" || type === "alcohol";
+      const possibleNutritionExemption = type === "fresh" || type === "catering" || type === "alcohol" || surface === "tiny";
+      const mustReview = [];
+      const watch = [];
+
+      const allergenResults = text ? scanAllergens(text) : [];
+      const nutrientResults = text ? scanNutrients(raw) : [];
+      const basisResults = text ? scanBasis(raw) : [];
+
+      if (!text) {
+        addFlag(mustReview, {
+          severity: "review",
+          title: "No label text provided — parse checks not run",
+          trigger: "No pasted label text found, so none of the text-based checks below could run.",
+          anchor: "Cap 132W reg 4A + Schedule 3, if prepackaged food is in scope; verify against official text for final applicability.",
+          tier: "[STATUTORY]",
+          judgment: PENDING,
+          note: "The tool cannot inspect the physical package. Paste all visible label text; the full label still " + PRO + ".",
+          source: HK_SOURCE
+        });
+      }
+
+      if (!isPrepackaged) {
+        addFlag(watch, {
+          severity: "watch",
+          title: "Product may not follow the standard prepackaged-label path",
+          trigger: "Product profile selected: " + $("type").selectedOptions[0].textContent + ".",
+          anchor: "Cap 132W reg 4A and Schedule 4 exemptions may be relevant; verify against official text.",
+          tier: "[STATUTORY]",
+          judgment: PENDING,
+          note: "Conditional requirement — fresh, catering, and ready-to-eat service formats can change label duties. This " + PRO + ".",
+          source: HK_SOURCE
+        });
+      }
+
+      if (text && isHK && isPrepackaged) {
+        // FIX-1 (Session 1.1): a first line that is itself a section heading must
+        // never satisfy the food-name check. Over-flagging a heading-like product
+        // name is accepted (G2); silently accepting a heading as the name is not.
+        const headingLikeRe = /^(ingredients?|ingredientes|composition|contents|contains|allergen|allergy|nutrition|nutritional|storage|keep\b|store\b|best\s*before|use\s*by|expiry|exp\.?\s|net\s*(weight|wt\.?|volume|vol\.?|contents?)|manufactured|manufacturer|packed|packer|distributed|distributor|imported\s+by|made\s+in|product\s+of|country\s+of\s+origin)|^(配料|成分|內含|營養|致敏|保存|貯存|此日期|淨重|容量|製造|包裝|分銷|進口|原產)/i;
+        const firstLine = rawLines(raw)[0] || "";
+        const nameLikely = firstLine.length >= 3 && !headingLikeRe.test(firstLine);
+
+        const labelParticulars = [
+          {
+            title: "Food name or designation not clearly found in provided text",
+            present: nameLikely,
+            trigger: nameLikely ? "" : 'First non-empty line is "' + firstLine + '" — no clear food name/designation found in the provided text. Confirm whether it appears on the physical label.',
+            anchor: "Cap 132W reg 4A + Schedule 3 item 1",
+            judgment: PENDING,
+            note: "Unconditional requirement for prepackaged food. The parser treats the first non-empty pasted line as a possible product name; it cannot judge whether a name is false, misleading, or adequate. This " + PRO + ".",
+            conditional: false
+          },
+          {
+            title: "Ingredient list heading not found",
+            present: /\b(ingredients?|composition|contents)\s*[:：]/i.test(text) || /配料|成分組合|內含物質/.test(text),
+            trigger: "No ingredient-list heading (ingredients/composition/contents/配料/成分) found in the provided text — confirm whether it appears on the physical label.",
+            anchor: "Cap 132W reg 4A + Schedule 3 item 2",
+            judgment: type === "alcohol" ? PENDING : CONFIRMED,
+            severity: type === "alcohol" ? "watch" : "review",
+            note: type === "alcohol"
+              ? "Conditional for this profile — some drink categories carry exemptions; verify against official text. This " + PRO + "."
+              : "Unconditional for prepackaged general food unless a Schedule 4 exemption applies; exemption assessment " + PRO + ".",
+            conditional: type === "alcohol"
+          },
+          {
+            title: "Durability indication not found",
+            present: /\b(best\s*before|use\s*by|expiry|exp\.?|bb)\b/i.test(text) || /此日期前最佳|此日期或之前食用/.test(text),
+            trigger: "No best-before / use-by / date marking found in the provided text — confirm whether it appears on the physical label.",
+            anchor: "Cap 132W reg 4A + Schedule 3 item 4",
+            judgment: CONFIRMED,
+            note: "Unconditional for prepackaged food unless a Schedule 4 exemption applies. Prescribed wording, date format, and bilingual requirements are NOT checked at this coarse level — this element requires detailed rule-level checking; refer to a qualified reviewer.",
+            conditional: false
+          },
+          {
+            title: "Manufacturer, packer, distributor, or origin details not found",
+            present: /\b(manufactured|manufacturer|packed|packer|distributed|distributor|imported by|made in|product of|country of origin|address)\b/i.test(text) || /製造|包裝|分銷|進口|原產地/.test(text),
+            trigger: "No manufacturer/packer/distributor/origin details found in the provided text — confirm whether they appear on the physical label.",
+            anchor: "Cap 132W reg 4A + Schedule 3 item 6",
+            judgment: PENDING,
+            note: "Unconditional in principle, but Schedule 3 item 6 contains alternatives and conditions (verify exact sub-items against official text). This " + PRO + ".",
+            severity: "watch",
+            conditional: true
+          },
+          {
+            title: "Count, net weight, or net volume not found",
+            present: /\b(net\s*(weight|wt\.?|volume|vol\.?|contents?))\b/i.test(text) || /\b[0-9]+(\.[0-9]+)?\s*(g|kg|ml|l|litre|liter|oz|lb)\b/i.test(text) || /淨重|容量|毫升|公升|克|公斤/.test(text),
+            trigger: "No numerical count, net weight, or net volume found in the provided text — confirm whether it appears on the physical label.",
+            anchor: "Cap 132W reg 4A + Schedule 3 item 7",
+            judgment: CONFIRMED,
+            note: "Unconditional for prepackaged food. Physical placement, legibility, and unit compliance are not checked; those " + PRO + ".",
+            conditional: false
+          }
+        ];
+
+        labelParticulars.forEach((rule) => {
+          if (!rule.present) {
+            addFlag(rule.severity === "watch" ? watch : mustReview, {
+              severity: rule.severity || "review",
+              title: rule.title,
+              trigger: rule.trigger,
+              anchor: rule.anchor,
+              tier: "[STATUTORY]",
+              judgment: rule.judgment,
+              note: rule.note,
+              source: HK_SOURCE
+            });
+          }
+        });
+
+        // REG-05: Schedule 3 item 5 (storage/use instructions) is CONDITIONAL —
+        // required where the product needs it, not unconditionally mandatory.
+        const storageFound = /\b(keep|store|storage|refrigerat|frozen|freeze|consume within|after opening|conservar)\b/i.test(text) || /保存|貯存|冷藏|冷凍|開封後/.test(text);
+        if (checked("coldChain") && !storageFound) {
+          addFlag(mustReview, {
+            severity: "review",
+            title: "Storage/use instructions not found for cold-chain product",
+            trigger: "Cold-chain needed is selected, but no storage/use wording was found in the provided text.",
+            anchor: "Cap 132W reg 4A + Schedule 3 item 5",
+            tier: "[STATUTORY]",
+            judgment: CONFIRMED,
+            note: "Conditional requirement, and the condition is met here: the profile says a chilled/frozen chain is needed, so absence of storage/use wording is flagged.",
+            source: HK_SOURCE
+          });
+        } else if (!storageFound) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "Storage/use instructions not found",
+            trigger: "No storage or use instructions found in the provided text — confirm whether this product needs them.",
+            anchor: "Cap 132W reg 4A + Schedule 3 item 5",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Conditional requirement — assess whether this product needs it. This " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+      }
+
+      // REG-01: allergen categories. Watch flags for detections; the Parse Audit
+      // Trail below additionally emits a line for every category on every run.
+      allergenResults.forEach((cat) => {
+        if (cat.hits.length) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "Allergen term detected: " + cat.group,
+            trigger: '"' + cat.hits.join('", "') + '"',
+            anchor: "Cap 132W reg 4A + Schedule 3 item 2 (allergen declaration sub-item — verify exact sub-item against official text)",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Conditional on the allergen actually being present in the food. The tool detected a term, but cannot assess concentration (e.g. the commonly cited 10 ppm sulphite threshold), compound ingredients, cross-contact, translation adequacy, or whether the declaration wording is correct. This " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+      });
+
+      if (text) {
+        const additiveCue = /\b(emulsifier|stabilizer|stabiliser|preservative|colour|color|sweetener|antioxidant|thickener|raising agent|acidity regulator|lecithin|e[0-9]{3,4}|INS\s*[0-9]{3,4})\b|乳化劑|穩定劑|防腐劑|色素|甜味劑|抗氧化劑/i;
+        if (additiveCue.test(text)) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "Additive wording detected",
+            trigger: '"' + findMatch(text, additiveCue) + '"',
+            anchor: "Cap 132W reg 4A + Schedule 3 item 2 (additive functional class sub-items — verify exact sub-items against official text)",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Conditional on additives being present. Functional class / name / INS adequacy requires detailed rule-level checking — refer to a qualified reviewer.",
+            source: HK_SOURCE
+          });
+        }
+
+        if (/\b(hydrogenated)\b/i.test(text)) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "Hydrogenated oil wording detected",
+            trigger: '"' + findMatch(text, /\b(hydrogenated oil|hydrogenated)\b/i) + '"',
+            anchor: "Cap 132W reg 4A + Schedule 3 item 2 (hydrogenated oil sub-item — verify exact sub-item against official text)",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Conditional on hydrogenated oil being an ingredient. Whether the ingredient-list wording satisfies the requirement " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+
+        if (/\b(irradiated|treated with ionizing radiation|ionising radiation)\b/i.test(text) || /輻照/.test(text)) {
+          addFlag(mustReview, {
+            severity: "review",
+            title: "Irradiated food wording detected",
+            trigger: '"' + (findMatch(text, /\b(irradiated|treated with ionizing radiation|ionising radiation)\b/i) || "輻照") + '"',
+            anchor: "Cap 132W Schedule 2 (irradiated food marking — verify exact item against official text)",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Conditional on irradiation treatment. Required English and Chinese wording and whether the treatment applies to the food or an ingredient " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+      }
+
+      if (text && isHK && isPrepackaged && !possibleNutritionExemption) {
+        const hasNutritionHeading = /\b(nutrition|nutritional)\b/i.test(text) || /營養/.test(text);
+        if (!hasNutritionHeading) {
+          addFlag(mustReview, {
+            severity: "review",
+            title: "Nutrition information section not found",
+            trigger: "No nutrition/nutritional/營養 heading found in the provided text — confirm whether it appears on the physical label.",
+            anchor: "Cap 132W reg 4B + Schedule 5 Part 1 (verify exact item against official text)",
+            tier: "[STATUTORY]",
+            judgment: CONFIRMED,
+            note: "Unconditional for general prepackaged food unless a Schedule 6 exemption applies; exemption assessment " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+
+        nutrientResults.forEach((n) => {
+          if (n.status === "absent") {
+            addFlag(mustReview, {
+              severity: "review",
+              title: n.name + " not found in nutrition text",
+              trigger: n.name + " not found in the provided text — confirm whether it appears on the physical label.",
+              anchor: "Cap 132W reg 4B + Schedule 5 Part 1 (verify exact item against official text)",
+              tier: "[STATUTORY]",
+              judgment: CONFIRMED,
+              note: "Unconditional (energy + 7 core nutrients) for general prepackaged food unless a Schedule 6 exemption applies. Text presence only — values, units, rounding, tolerance, format, and lab substantiation are not checked and " + PRO + ".",
+              source: HK_SOURCE
+            });
+          } else if (n.status === "non-numeric") {
+            // REG-02: a mentioned nutrient whose line(s) carry no numeric value
+            // must be flagged — non-emptiness is not numeric validation.
+            addFlag(mustReview, {
+              severity: "review",
+              title: n.name + " — no numeric value found",
+              trigger: 'The only label text mentioning this nutrient is "' + n.quote + '", which contains no numeric value.',
+              anchor: "Cap 132W reg 4B + Schedule 5 Part 1 (declared amounts — verify exact item against official text)",
+              tier: "[STATUTORY]",
+              judgment: CONFIRMED,
+              note: "A declared amount should be a number. The tool checks only that digits are present on the line; correct values, units, rounding, and tolerances " + PRO + ".",
+              source: HK_SOURCE
+            });
+          }
+        });
+
+        // REG-03: echo the declaration basis exactly as found; never substitute units.
+        if (!basisResults.length) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "Nutrition declaration basis not found",
+            trigger: "No per-100 g / per-100 mL / per-serving basis text found in the provided text — confirm whether it appears on the physical label.",
+            anchor: "Cap 132W reg 4B + Schedule 5 Part 1 (declaration basis — verify exact item against official text)",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Whether the basis used is appropriate for this product " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+      } else if (possibleNutritionExemption) {
+        addFlag(watch, {
+          severity: "watch",
+          title: "Possible nutrition-labelling exemption or non-standard nutrition scope",
+          trigger: "Product profile/package format selected: " + $("type").selectedOptions[0].textContent + "; " + $("surface").selectedOptions[0].textContent + ".",
+          anchor: "Cap 132W reg 4B + Schedule 6; verify against official text for the exact exemption.",
+          tier: "[STATUTORY]",
+          judgment: PENDING,
+          note: "Conditional requirement — assess whether the exemption actually applies. Any nutrition claim or voluntary nutrient display may remove the exemption. This " + PRO + ".",
+          source: HK_SOURCE
+        });
+      }
+
+      if (type === "infant") {
+        addFlag(mustReview, {
+          severity: "review",
+          title: "Infant / follow-up / young-child product profile selected",
+          trigger: "Product profile selected: " + $("type").selectedOptions[0].textContent + ".",
+          anchor: "Cap 132W reg 4C (infant and young-children nutrition-labelling regime; verify Schedule reference against official text)",
+          tier: "[STATUTORY]",
+          judgment: PENDING,
+          note: "Conditional on product class, and it applies here per the selected profile. This is a separate statutory regime whose nutrient list and values this tool does not validate. This " + PRO + ".",
+          source: HK_SOURCE
+        });
+      }
+
+      if (text) {
+        // REG-04: comparative claims must at minimum raise a flag. Direction and
+        // reference-food substantiation are NOT verified at this coarse level.
+        const comparativeRe = /\b(reduced|less|lower|lighter|light|lite|fewer|more|increased|higher|extra|enriched|fortified|added)\b|較少|較低|較高|更少|更低|更高|減少|增加|加強|強化/i;
+        const comparativeHit = findMatch(text, comparativeRe);
+        if (comparativeHit) {
+          const line = rawLines(raw).find((l) => comparativeRe.test(l)) || comparativeHit;
+          addFlag(mustReview, {
+            severity: "review",
+            title: "Comparative claim wording detected",
+            trigger: '"' + line + '"',
+            anchor: "Cap 132W reg 4B + Schedule 5 nutrition-claim provisions (verify exact comparative-claim condition against official text)",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Comparative claim detected; direction and reference-food substantiation cannot be verified by this tool. Conditional on a claim being made. This " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+
+        const nutritionClaim = findMatch(text, /\b(low|reduced|free|no added|source of|high in|rich in|less|light|lite|zero|sugar[- ]free|fat[- ]free|low sodium)\b.{0,45}\b(energy|calorie|fat|saturated|trans|sodium|salt|sugar|protein|fibre|fiber|vitamin|calcium)\b|(高|低|不含|無添加).{0,20}(營養|糖|脂肪|鈉|蛋白|纖維)/i);
+        if (nutritionClaim) {
+          addFlag(mustReview, {
+            severity: "review",
+            title: "Possible nutrition claim detected",
+            trigger: '"' + nutritionClaim + '"',
+            anchor: "Cap 132W reg 4B + Schedule 5 nutrition-claim provisions; exact condition must be verified against official text.",
+            tier: "[STATUTORY]",
+            judgment: PENDING,
+            note: "Conditional on a claim being made. Claim classification, thresholds, per-serving basis, comparative baseline, values, and advertisements require detailed rule-level checking — refer to a qualified reviewer.",
+            source: HK_SOURCE
+          });
+        }
+
+        const healthClaim = findMatch(text, /\b(immune|immunity|cure|prevent|treat|therapeutic|disease|diabetes|cholesterol|blood pressure|slimming|weight loss|detox|boosts?|supports?)\b|改善|治療|預防|免疫|降膽固醇|降血壓|減肥/i);
+        if (healthClaim) {
+          addFlag(mustReview, {
+            severity: "review",
+            title: "Possible health, disease-risk, or therapeutic wording detected",
+            trigger: '"' + healthClaim + '"',
+            anchor: "No official text located by this tool — verify against official text for the applicable food, advertising, medicine, and claim controls.",
+            tier: "[CONSERVATIVE-FLAG]",
+            judgment: PENDING,
+            note: "Conditional on a claim being made. The tool cannot classify therapeutic or disease-risk claims. This " + PRO + "."
+          });
+        }
+
+        const organicNaturalClaim = findMatch(text, /\b(organic|natural|all natural|clean label)\b|無添加|天然|有機/i);
+        if (organicNaturalClaim) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "Organic / natural style wording detected",
+            trigger: '"' + organicNaturalClaim + '"',
+            anchor: "No official text located by this tool — verify against official text and applicable certification/consumer-protection requirements.",
+            tier: "[CONSERVATIVE-FLAG]",
+            judgment: PENDING,
+            note: "Conditional on the wording being used. Certification scope, substantiation, and consumer-misleading risk " + PRO + "."
+          });
+        }
+
+        const gmWording = findMatch(text, /\b(genetically modified|genetically engineered|GMO|GM|non[- ]GMO)\b|基因改造|轉基因/i);
+        if (gmWording) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "GM / non-GM wording detected",
+            trigger: '"' + gmWording + '"',
+            anchor: "Cap 132W Schedule 5 nutrition-claim provisions may interact with GM declarations (verify exact item against official text); broader GM position — verify against official text.",
+            tier: "[CONSERVATIVE-FLAG]",
+            judgment: PENDING,
+            note: "Conditional on the wording being used. Ingredient GM status, identity preservation, and claim substantiation " + PRO + ".",
+            source: HK_SOURCE
+          });
+        }
+      }
+
+      if (checked("animal")) {
+        addFlag(mustReview, {
+          severity: "review",
+          title: "Animal-origin control review selected",
+          trigger: "Animal-origin product or controlled animal-origin ingredient checkbox selected.",
+          anchor: "No official text located by this tool — verify against official text for category-specific Hong Kong/Macau import and health-certificate controls.",
+          tier: "[CONSERVATIVE-FLAG]",
+          judgment: PENDING,
+          note: "Conditional on the declared fact. Meat, poultry, milk, eggs, seafood, and similar products may need permits, source approvals, health certificates, or temperature evidence. This " + PRO + "."
+        });
+      }
+
+      if (checked("coldChain")) {
+        addFlag(watch, {
+          severity: "watch",
+          title: "Cold-chain evidence needed",
+          trigger: "Needs chilled / frozen chain checkbox selected.",
+          anchor: "No official text located by this tool — verify against official text for product-specific storage, transport, and import conditions.",
+          tier: "[CONSERVATIVE-FLAG]",
+          judgment: PENDING,
+          note: "Conditional on the declared fact. Prepare validated storage temperatures, shipper data, receiving checks, and deviation handling instructions."
+        });
+      }
+
+      if (checked("recall")) {
+        addFlag(mustReview, {
+          severity: "review",
+          title: "Recall / complaint / adverse event history selected",
+          trigger: "Past recall / complaint / adverse event checkbox selected.",
+          anchor: "No official text located by this tool — verify against official text and customer/importer recall obligations.",
+          tier: "[CONSERVATIVE-FLAG]",
+          judgment: PENDING,
+          note: "Conditional on the declared fact. Root cause, affected lots, corrective actions, and authority/customer communications " + PRO + "."
+        });
+      }
+
+      if (isMO) {
+        addFlag(watch, {
+          severity: "watch",
+          title: "Macau launch memo required",
+          trigger: "Target market includes Macau: " + $("market").selectedOptions[0].textContent + ".",
+          anchor: "No exact Macau labelling/import anchor is encoded in this tool — verify against official text.",
+          tier: "[CONSERVATIVE-FLAG]",
+          judgment: PENDING,
+          note: "Conditional on Macau being in scope. Confirm Municipal Affairs Bureau / official gazette requirements, importer duties, language expectations, and category-specific import controls before launch."
+        });
+        if (text && !hasChinese(text) && !hasPortugueseCue(text)) {
+          addFlag(watch, {
+            severity: "watch",
+            title: "No Chinese or Portuguese cues found for Macau-facing review",
+            trigger: "No Chinese characters or Portuguese label cues detected in the provided text.",
+            anchor: "No official text located by this tool — verify against official text for Macau language requirements.",
+            tier: "[CONSERVATIVE-FLAG]",
+            judgment: PENDING,
+            note: "The tool cannot decide whether a sticker, over-label, or market-specific artwork is acceptable. This " + PRO + "."
+          });
+        }
+      }
+
+      if (text && isHK && !hasChinese(text)) {
+        addFlag(watch, {
+          severity: "watch",
+          title: "No Chinese text detected",
+          trigger: "No Chinese characters detected in the provided text.",
+          anchor: "Cap 132W reg 4A + Schedule 3 item 8 (appropriate language); Schedule 5 language rules for nutrition labelling (verify exact items against official text)",
+          tier: "[STATUTORY]",
+          judgment: PENDING,
+          note: "Conditional requirement — Hong Kong permits English or Chinese in many cases, but if both languages are used, the food name and ingredient list must appear in both. Product tradition/origin exceptions may apply. This " + PRO + ".",
+          source: HK_SOURCE
+        });
+      }
+
+      // K1: pre-market due-diligence checklists (evidence pack / importer / Macau memo).
+      const evidence = [
+        checked("documents")
+          ? "Supplier specifications, COA, and traceability file marked ready — cross-check exact formulation, plant, lot coding, country of origin, and artwork version."
+          : "Supplier specifications, COA, and traceability file NOT marked ready — assemble these before launch; completeness " + PRO + ".",
+        "Keep final label artwork, translation QA record, nutrition calculation/lab basis, ingredient specifications, additive/allergen declarations, and claim substantiation.",
+        "Record what this tool could not check: physical label legibility, values/units/tolerances, compound ingredients, concentrations, cross-contact, package area, and market-specific equivalence — each " + PRO + "."
+      ];
+
+      const launch = [
+        checked("imported")
+          ? "Imported product selected: keep importer identity, invoices, packing list, HS/product classification, origin evidence, and recall contacts."
+          : "Imported product not selected: confirm whether the domestic/manufacturing route changes importer obligations.",
+        checked("coldChain")
+          ? "Cold-chain selected: keep temperature specification, lane validation, receiving log, and deviation procedure."
+          : "Cold-chain not selected: confirm ambient stability and whether any storage condition is still necessary — this " + PRO + ".",
+        isMO
+          ? "Macau in scope: prepare a Macau-specific memo covering importer, language, category controls, and authority verification."
+          : "Macau not selected: no Macau memo generated by this run.",
+        isHK
+          ? "Hong Kong in scope: map final artwork to Cap 132W Schedule 3 and Schedule 5 line by line."
+          : "Hong Kong not selected: no Hong Kong statutory mapping generated by this run."
+      ];
+
+      // Counts — plain counts only. No score, grade, or verdict, ever (G1/R1).
+      const totalFlags = mustReview.length + watch.length;
+      $("flagTotal").textContent = String(totalFlags);
+      $("mustReviewTotal").textContent = String(mustReview.length);
+      $("watchTotal").textContent = String(watch.length);
+      $("summaryText").textContent = totalFlags + " flags raised (" + mustReview.length + " must-review, " + watch.length + " watch items). Flags are prompts for review by a qualified food-safety professional — never conclusions, and the absence of a flag is never clearance.";
+
+      [["mustReview", mustReview], ["watch", watch]].forEach(([id, items]) => {
+        const target = $(id);
+        target.innerHTML = "";
+        if (!items.length) {
+          const empty = document.createElement("article");
+          empty.className = "flag note";
+          empty.innerHTML = "<h3>No flags in this bucket from parsed text</h3><dl><dt>Trigger</dt><dd>No matching trigger in provided text.</dd><dt>Anchor</dt><dd>No conclusion; absence of a tool flag is not compliance clearance.</dd><dt>Tier</dt><dd>[CONSERVATIVE-FLAG]</dd><dt>Judgment</dt><dd>[PENDING PROFESSIONAL JUDGMENT]</dd><dt>Note</dt><dd>The physical label and product-specific facts still require assessment by a qualified food-safety professional.</dd></dl>";
+          target.append(empty);
+        } else {
+          items.forEach((item) => target.append(renderFlag(item)));
+        }
+      });
+
+      // Parse Audit Trail — one line per allergen category and per nutrient on
+      // EVERY run (REG-01: no silent branches; disclosed allergens still show).
+      const allergenAudit = $("allergenAudit");
+      allergenAudit.innerHTML = "";
+      if (!text) {
+        const li = document.createElement("li");
+        li.textContent = "No label text provided — allergen parse not run.";
+        allergenAudit.append(li);
+      } else {
+        allergenResults.forEach((cat) => {
+          const li = document.createElement("li");
+          li.textContent = cat.hits.length
+            ? cat.group + " — DETECTED in text: \"" + cat.hits.join('", "') + "\" (declaration adequacy " + PRO + ")"
+            : cat.group + " — no matching term found in provided text (keyword scan only; not proof of absence).";
+          allergenAudit.append(li);
+        });
+      }
+
+      const nutrientAudit = $("nutrientAudit");
+      nutrientAudit.innerHTML = "";
+      if (!text) {
+        const li = document.createElement("li");
+        li.textContent = "No label text provided — nutrition parse not run.";
+        nutrientAudit.append(li);
+      } else {
+        nutrientResults.forEach((n) => {
+          const li = document.createElement("li");
+          if (n.status === "numeric") {
+            li.textContent = n.name + " — numeric value found: \"" + n.quote + "\"";
+          } else if (n.status === "non-numeric") {
+            li.textContent = n.name + " — mentioned but NO numeric value: \"" + n.quote + "\" (flagged)";
+          } else {
+            li.textContent = n.name + " — not found in provided text (flagged if this profile requires nutrition labelling).";
+          }
+          nutrientAudit.append(li);
+        });
+        const basisLi = document.createElement("li");
+        basisLi.textContent = basisResults.length
+          ? "Declaration basis text found (echoed exactly as written): \"" + basisResults.join('", "') + "\""
+          : "No per-100 g / per-100 mL / per-serving basis text found in provided text.";
+        nutrientAudit.append(basisLi);
+        const langLi = document.createElement("li");
+        langLi.textContent = "Language cues: Chinese characters " + (hasChinese(text) ? "detected" : "not detected") + "; Portuguese cues " + (hasPortugueseCue(text) ? "detected" : "not detected") + ".";
+        nutrientAudit.append(langLi);
+      }
+
+      [["evidenceChecklist", evidence], ["launchChecklist", launch]].forEach(([id, items]) => {
+        const target = $(id);
+        target.innerHTML = "";
+        items.forEach((item) => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          target.append(li);
+        });
+      });
+    }
+
+    $("run").addEventListener("click", runCheck);
+    $("print").addEventListener("click", () => window.print());
+
+    $("sample").addEventListener("click", () => {
+      $("market").value = "both";
+      $("type").value = "prepackaged";
+      $("surface").value = "normal";
+      $("labelText").value = "Sample Almond Oat Drink\n\nIngredients: Water, oats, almonds, sugar, sunflower oil, salt, emulsifier (lecithin).\n\nNutrition Information per 100 mL:\nEnergy 210 kJ / 50 kcal\nProtein 1.2 g\nTotal fat 2.0 g\nSaturated fat 0.3 g\nTrans fat 0 g\nCarbohydrate 6.0 g\nSugars 3.2 g\nSodium 45 mg\n\nBest before: 08/2027\nNet volume: 1 L\nKeep refrigerated after opening.\nManufactured by Example Foods Ltd, 1 Harbour Road, Hong Kong.";
+      $("imported").checked = true;
+      $("coldChain").checked = false;
+      $("animal").checked = false;
+      $("recall").checked = false;
+      $("documents").checked = false;
+      runCheck();
+    });
+
+    $("example").addEventListener("click", () => {
+      $("market").value = "both";
+      $("type").value = "prepackaged";
+      $("surface").value = "normal";
+      $("labelText").value = "Imported Chilled Seafood Protein Bar\n\nIngredients: Fish collagen, milk protein, almond, soy lecithin, sugar alcohol, natural flavour.\n\nNutrition: Energy 920 kJ, Protein 18 g, Fat 7 g, Carbohydrate 19 g, Sugars 2 g, Sodium 180 mg.\n\nHigh protein. Supports immunity. Natural. Reduced sugar.\nNet weight: 55 g\nBest before: see pack\nDistributed by Example Trading Ltd.";
+      $("imported").checked = true;
+      $("coldChain").checked = true;
+      $("animal").checked = true;
+      $("recall").checked = false;
+      $("documents").checked = false;
+      runCheck();
+    });
+
+    runCheck();
+  </script>
+</body>
+</html>
