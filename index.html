@@ -295,7 +295,7 @@
   <header>
     <h1>Hong Kong &amp; Macau Food Label Screener</h1>
     <p>A second pair of eyes for prepackaged food labels: paste the label text as-is and get review flags, each with its trigger, regulatory anchor, anchor tier, and judgment status. The tool raises flags; a qualified human decides.</p>
-    <span class="stamp">Version 2.1 (Phase 0 refactor + fix round) · Built 2026-07-08 · Not formally validated</span>
+    <span class="stamp">Version 2.3 (Phase 0 refactor + fix rounds) · Built 2026-07-08 · Not formally validated</span>
   </header>
 
   <div class="disclaimer" role="note" aria-label="Read this first">
@@ -393,7 +393,7 @@
           </div>
           <div class="checklist">
             <h3>Parse Audit Trail — Nutrition Text (always all 8 + basis)</h3>
-            <p class="small">One line per core nutrient on every run. "Numeric value found" means digits were present on that label line — it does not verify values, units, rounding, or lab substantiation.</p>
+            <p class="small">One line per core nutrient on every run. "Numeric value found" means digits were present on that label line — it does not verify values, units, rounding, or lab substantiation. Ingredient-list text is excluded from this scan, so an ingredient such as "sugar" or "salt" never satisfies a nutrition-panel check.</p>
             <ul id="nutrientAudit"></ul>
           </div>
         </div>
@@ -411,7 +411,7 @@
       </div>
 
       <div class="source-box">
-        <strong>Version 2.1 (Phase 0 refactor + fix round) · Built 2026-07-08 · Not formally validated.</strong><br>
+        <strong>Version 2.3 (Phase 0 refactor + fix rounds) · Built 2026-07-08 · Not formally validated.</strong><br>
         Anchor status: Cap. 132W regulation and Schedule 3 item numbers were cross-checked on 2026-07-08 against the Centre for Food Safety summary page; sub-item numbers and Macau anchors have not been independently verified — where a flag says "verify against official text", do exactly that before citing it. CFS guidance materials are advisory; the legislation itself binds.<br>
         Tier policy: [STATUTORY] is used where the regulation FAMILY (regulation number / Schedule) was cross-checked against the CFS summary page on 2026-07-08, even where exact item/sub-item numbers remain unverified — those carry a 'verify against official text' caveat in the anchor. [CONSERVATIVE-FLAG] is used where no official text was located at all. [CFS-INTERPRETATION] is reserved for future flags anchored to CFS guidance rather than legislation; none exist in v1. Tier precision is upgraded as the RA spot-audits anchors.
         Sources: <a href="https://www.cfs.gov.hk/english/food_leg/food_leg_cl.html" target="_blank" rel="noreferrer">Hong Kong CFS Cap. 132W page</a>, <a href="https://www.elegislation.gov.hk/hk/cap132W" target="_blank" rel="noreferrer">Hong Kong e-Legislation Cap. 132W</a>, <a href="https://www.foodsafety.gov.mo/" target="_blank" rel="noreferrer">Macau Food Safety Information</a>.
@@ -447,7 +447,7 @@
       { name: "protein", re: /\b(protein)\b/i, cjk: /蛋白/ },
       { name: "available carbohydrates / carbohydrates", re: /\b(carbohydrate|carbohydrates|carbs)\b/i, cjk: /碳水化合物/ },
       { name: "total fat", re: /\b(total\s+fat|fat)\b/i, cjk: /脂肪/ },
-      { name: "saturated fatty acids / saturated fat", re: /\b(saturated|sat\.?\s*fat)\b/i, cjk: /飽和/ },
+      { name: "saturated fatty acids / saturated fat", re: /\b(saturated|saturates|sat\.?\s*fat)\b/i, cjk: /飽和/ },
       { name: "trans fatty acids / trans fat", re: /\b(trans)\b/i, cjk: /反式/ },
       { name: "sodium", re: /\b(sodium|salt)\b/i, cjk: /鈉/ },
       { name: "sugars", re: /\b(sugars?)\b/i, cjk: /糖/ }
@@ -499,11 +499,57 @@
       });
     }
 
-    // Nutrient scan over raw label lines. Returns one result for EVERY nutrient,
-    // always: status is "numeric" (a line mentions it with digits), "non-numeric"
-    // (mentioned, but no line carrying it has any digits — REG-02), or "absent".
+    // FIX-4 (Session 1.2): lines belonging to the ingredient-list region are
+    // excluded from nutrient scanning. On a real label with no nutrition panel,
+    // ingredient text ("…Caster Sugar… Salt… (32%)…") satisfied the sodium and
+    // sugars presence checks — a silent pass on a missing panel (G2 worst case).
+    // The region starts at an ingredients/composition/contents/配料/成分 heading
+    // (including a single line carrying the whole list) and ends at a blank line
+    // or a recognisable new section. Residual limitation (declared): ingredient
+    // continuation text after a blank line, with a nutrient keyword AND digits
+    // on the same line, would still be scanned — over-flagging direction is
+    // preserved everywhere else.
+    // FIX-4b (Session 1.2.1): the original RS10 ingredient list has NO heading —
+    // it begins directly with "Wheatflour contains Gluten (with Wheatflour,
+    // Calcium Carbonate…". Region detection alone missed it. A per-line SHAPE
+    // rule is added: a line is classified as ingredient-list text when it has
+    // 4 or more list separators (, ， 、) AND fewer than 2 measurement tokens
+    // (a digit followed by g/mg/µg/kg/kJ/kcal). Rationale: real nutrition-panel
+    // rows are short ("Salt 0.68g", "of which sugars 16.6g", "Energy kJ 2179",
+    // "Protein: abc g", "蛋白質 適量" — 0-1 separators), while even a whole
+    // panel pasted on ONE line ("Energy 2179 kJ, Fat 33.4g, …") carries 2+
+    // measurement tokens and is therefore NEVER classified as ingredient text.
+    // Percentages like "(32%)" and additive codes like "E503" are not
+    // measurement tokens, so ingredient lists do not escape via their digits.
+    function looksLikeIngredientList(line) {
+      const separators = (line.match(/[,，、]/g) || []).length;
+      if (separators < 4) return false;
+      const measurementTokens = (line.match(/[0-9][.,]?[0-9]*\s*(g|mg|µg|mcg|kg|kj|kcal)\b/gi) || []).length;
+      return measurementTokens < 2;
+    }
+
+    function nutrientScanLines(raw) {
+      const lines = raw.split(/\r?\n/);
+      const ingredientStart = /^\s*(ingredients?\b|ingredientes\b|composition\b|contents\b|配料|成分)/i;
+      const sectionBreak = /^\s*(typical\s*values|nutrition|nutritional|energy|per\s*100|allergen|allergy|contains\b|storage|keep\b|store\b|best\s*before|use\s*by|expiry|net\s*(weight|volume|contents?)|manufactured|manufacturer|packed|distributed|imported|made\s+in|product\s+of|country\s+of\s+origin|營養|保存|貯存|此日期|淨重|容量|製造|包裝|分銷|進口|原產)/i;
+      const out = [];
+      let inIngredients = false;
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) { inIngredients = false; continue; }
+        if (ingredientStart.test(line)) { inIngredients = true; continue; }
+        if (inIngredients && sectionBreak.test(line)) inIngredients = false;
+        if (!inIngredients && !looksLikeIngredientList(line)) out.push(line);
+      }
+      return out;
+    }
+
+    // Nutrient scan over raw label lines (ingredient-list region excluded —
+    // FIX-4). Returns one result for EVERY nutrient, always: status is
+    // "numeric" (a line mentions it with digits), "non-numeric" (mentioned, but
+    // no line carrying it has any digits — REG-02), or "absent".
     function scanNutrients(raw) {
-      const lines = rawLines(raw);
+      const lines = nutrientScanLines(raw);
       return nutrientChecks.map((n) => {
         const matching = lines.filter((l) => n.re.test(l) || n.cjk.test(l));
         if (!matching.length) return { name: n.name, status: "absent", quote: "" };
